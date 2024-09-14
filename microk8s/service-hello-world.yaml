@@ -4,7 +4,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: hello-world-nginx
-  namespace: testing
 spec:
   selector:
     matchLabels:
@@ -25,62 +24,9 @@ apiVersion: v1
 kind: Service
 metadata:
   name: hello-world
-  namespace: testing
 spec:
   ports:
     - port: 80
       protocol: TCP
   selector:
     app:  hello-world
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: hello-world
-spec:
-  parentRefs:
-  - name: internal-gateway
-    sectionName: http
-  # hostnames: 
-  # - "hello.internal.bivala.com"
-  rules:
-  - matches:
-    - path:
-        type: Exact
-        value: /
-    backendRefs:
-    - name: hello-world
-      namespace: testing
-      port: 80
----
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: ReferenceGrant
-metadata:
-  name: access-to-testing-services
-  namespace: testing
-spec:
-  to:
-  - group: ""
-    kind: Service
-  from:
-  - group: gateway.networking.k8s.io
-    kind: HTTPRoute
-    namespace: default
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: hello-world-prefix
-spec:
-  parentRefs:
-  - name: internal-gateway
-    sectionName: http
-  rules:
-  - matches:
-    - path:
-        type: PathPrefix
-        value: /test-other
-    backendRefs:
-    - name: hello-world
-      namespace: testing
-      port: 80
